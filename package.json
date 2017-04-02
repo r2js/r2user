@@ -1,0 +1,46 @@
+{
+  "name": "r2user",
+  "description": "",
+  "version": "1.0.0",
+  "author": "Selçuk Fatih Sevinç",
+  "license": "MIT",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "dependencies": {
+    "debug": "^2.6.3",
+    "es6-promisify": "^5.0.0",
+    "jwt-simple": "^0.5.1",
+    "validatorjs": "^3.11.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "ejs": "^2.5.6",
+    "eslint": "^3.18.0",
+    "eslint-config-airbnb": "^14.1.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^4.0.0",
+    "eslint-plugin-react": "^6.10.3",
+    "mocha": "^3.2.0",
+    "nodemailer": "^3.1.8",
+    "nodemailer-stub-transport": "^1.0.0",
+    "r2base": "^1.0.0",
+    "r2mongoose": "^1.0.0",
+    "r2system": "^1.0.0",
+    "supertest": "^3.0.0"
+  },
+  "main": "index.js",
+  "readmeFilename": "README.md",
+  "keywords": [],
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/r2js/r2user.git"
+  },
+  "bugs": {
+    "url": "https://github.com/r2js/r2user/issues"
+  },
+  "homepage": "https://github.com/r2js/r2user"
+}
