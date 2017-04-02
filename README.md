@@ -1,7 +1,7 @@
 <h1 align="center">r2user</h1>
 
 <div align="center">
-  <strong></strong>
+  <strong>r2user is a user service for r2js</strong>
 </div>
 
 <br />

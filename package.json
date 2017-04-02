@@ -1,7 +1,7 @@
 {
   "name": "r2user",
-  "description": "",
-  "version": "1.0.0",
+  "description": "User service for r2js",
+  "version": "1.0.1",
   "author": "Selçuk Fatih Sevinç",
   "license": "MIT",
   "engines": {
@@ -31,7 +31,13 @@
   },
   "main": "index.js",
   "readmeFilename": "README.md",
-  "keywords": [],
+  "keywords": [
+    "r2js",
+    "r2user",
+    "auth",
+    "login",
+    "register"
+  ],
   "scripts": {
     "test": "mocha"
   },
