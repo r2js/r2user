@@ -2,6 +2,7 @@ const chai = require('chai');
 const r2base = require('r2base');
 const r2mongoose = require('r2mongoose');
 const r2system = require('r2system');
+const r2acl = require('r2acl');
 const nodemailer = require('nodemailer');
 const stubTransport = require('nodemailer-stub-transport');
 const r2user = require('../index');
@@ -14,6 +15,7 @@ const app = r2base({ baseDir: __dirname });
 app.start()
   .serve(r2mongoose, { database: 'r2test' })
   .serve(r2system)
+  .serve(r2acl)
   .serve(mailer, 'Mailer')
   .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
   .into(app);
@@ -21,9 +23,22 @@ app.start()
 app.set('view engine', 'ejs');
 const User = app.service('User');
 const System = app.service('System');
+const Acl = app.service('Acl');
 const { Users } = System;
 
 describe('r2user', () => {
+  describe('initialization', () => {
+    it('should require System service', (done) => {
+      const systemTest = r2base({ baseDir: __dirname });
+      systemTest.start()
+        .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
+        .into(systemTest);
+
+      expect(systemTest.service('User')).to.equal(undefined);
+      done();
+    });
+  });
+
   describe('register', () => {
     it('should register new user', () => (
       User.register({ email: 'test1@abc.com', passwd: '1234' }).then((user) => {
@@ -132,6 +147,7 @@ describe('r2user', () => {
           try {
             expect(user.token).to.not.equal(undefined);
             expect(user.expires).to.not.equal(undefined);
+            expect(user.userId).to.not.equal(undefined);
             done();
           } catch (e) {
             done(e);
@@ -303,6 +319,121 @@ describe('r2user', () => {
             done(e);
           }
         });
+    });
+  });
+
+  describe('verify token', () => {
+    it('should verify access token', (done) => {
+      const obj = { email: 'test16@abc.com', passwd: '1234' };
+      User.register(obj)
+        .then(() => User.login(obj))
+        .then(user => User.verifyToken(user.token))
+        .then((token) => {
+          try {
+            expect(token.user).to.not.equal(undefined);
+            expect(token.expires).to.not.equal(undefined);
+            done();
+          } catch (e) {
+            done(e);
+          }
+        })
+        .catch(done);
+    });
+
+    it('should not verify wrong access token', (done) => {
+      User.verifyToken('12345')
+        .then(done)
+        .catch((err) => {
+          try {
+            expect(err).to.equal('token verification failed!');
+            done();
+          } catch (e) {
+            done(e);
+          }
+        })
+        .catch(done);
+    });
+
+    it('should not verify expired access token', (done) => {
+      const obj = { email: 'test17@abc.com', passwd: '1234' };
+      User.register(obj)
+        .then((user) => {
+          const tokenData = {
+            user: user.id,
+            expires: app.utils.expiresIn(-7),
+          };
+
+          const token = app.utils.getToken(tokenData, '1234').token;
+          return User.verifyToken(token);
+        })
+        .then(done)
+        .catch((err) => {
+          try {
+            expect(err).to.equal('token expired!');
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+    });
+  });
+
+  describe('add role', () => {
+    it('should add admin role to the user', (done) => {
+      const obj = { email: 'test18@abc.com', passwd: '1234' };
+      let userData;
+      User.register(obj)
+        .then((user) => {
+          userData = user;
+          return User.addRole(user, 'admin');
+        })
+        .then(() => Acl.userRoles(userData.id))
+        .then((roles) => {
+          expect(roles).to.deep.equal(['admin']);
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should require Acl service', (done) => {
+      const aclTest = r2base({ baseDir: __dirname });
+      aclTest.start()
+        .serve(r2system)
+        .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
+        .into(aclTest);
+
+      expect(aclTest.service('User').addRole).to.equal(undefined);
+      done();
+    });
+  });
+
+  describe('allow role', () => {
+    it('should allow admin to get posts', (done) => {
+      const obj = { email: 'test19@abc.com', passwd: '1234' };
+      let userData;
+      User.register(obj)
+        .then((user) => {
+          userData = user;
+          return User.addRole(user, 'admin');
+        })
+        .then(() => User.allowRole('admin', 'posts', ['get']))
+        .then(() => Acl.isAllowed(userData.id, 'posts', ['get']))
+        .then((isAllowed) => {
+          expect(isAllowed).to.equal(true);
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should require Acl service', (done) => {
+      const aclTest = r2base({ baseDir: __dirname });
+      aclTest.start()
+        .serve(r2system)
+        .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
+        .into(aclTest);
+
+      expect(aclTest.service('User').allowRole).to.equal(undefined);
+      done();
     });
   });
 });

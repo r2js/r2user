@@ -6,6 +6,9 @@ const confirm = require('./lib/confirm');
 const forgotPasswd = require('./lib/forgotPasswd');
 const resetPasswd = require('./lib/resetPasswd');
 const changePasswd = require('./lib/changePasswd');
+const verifyToken = require('./lib/verifyToken');
+const addRole = require('./lib/addRole');
+const allowRole = require('./lib/allowRole');
 
 module.exports = function User(app, conf = {}) {
   const System = app.service('System');
@@ -24,5 +27,8 @@ module.exports = function User(app, conf = {}) {
     forgotPasswd: forgotPasswd(app, Users, Verify),
     resetPasswd: resetPasswd(app, Users),
     changePasswd: changePasswd(app, Users),
+    verifyToken: verifyToken(app, Users, conf.jwt),
+    addRole: addRole(app),
+    allowRole: allowRole(app),
   };
 };
