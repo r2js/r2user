@@ -1,4 +1,4 @@
-const log = require('debug')('r2:user');
+const _ = require('underscore');
 const login = require('./lib/login');
 const register = require('./lib/register');
 const verify = require('./lib/verify');
@@ -6,10 +6,11 @@ const confirm = require('./lib/confirm');
 const forgotPasswd = require('./lib/forgotPasswd');
 const resetPasswd = require('./lib/resetPasswd');
 const changePasswd = require('./lib/changePasswd');
-const verifyToken = require('./lib/verifyToken');
 const addRole = require('./lib/addRole');
 const allowRole = require('./lib/allowRole');
+const log = require('debug')('r2:user');
 
+// TODO: mongoose discriminator kullanarak profile modeli geçirilebilir
 module.exports = function User(app, conf = {}) {
   const System = app.service('System');
   if (!System) {
@@ -17,18 +18,23 @@ module.exports = function User(app, conf = {}) {
   }
 
   const { Users } = System;
-  const Verify = verify(app);
+  const verifyUser = verify(app);
+  const registerUser = register(app, Users);
+  const registerVerified = _.compose(registerUser, obj => (
+    Object.assign(obj, { isEnabled: 'y', isVerified: 'y' })
+  ));
 
   return {
-    register: register(app, Users),
-    verify: Verify, // send token
+    register: registerUser,
+    registerVerified,
+    verify: verifyUser, // send token
     confirm: confirm(app, Users), // confirm token
     login: login(app, Users, conf.jwt),
-    forgotPasswd: forgotPasswd(app, Users, Verify),
+    forgotPasswd: forgotPasswd(app, Users, verifyUser),
     resetPasswd: resetPasswd(app, Users),
     changePasswd: changePasswd(app, Users),
-    verifyToken: verifyToken(app, Users, conf.jwt),
     addRole: addRole(app),
     allowRole: allowRole(app),
+    // updateRoles (remove old roles and set new roles)
   };
 };

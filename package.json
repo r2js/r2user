@@ -1,7 +1,7 @@
 {
   "name": "r2user",
   "description": "User service for r2js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Selçuk Fatih Sevinç",
   "license": "MIT",
   "engines": {
@@ -11,6 +11,7 @@
     "debug": "^2.6.3",
     "es6-promisify": "^5.0.0",
     "jwt-simple": "^0.5.1",
+    "underscore": "^1.8.3",
     "validatorjs": "^3.11.0"
   },
   "devDependencies": {
@@ -25,7 +26,7 @@
     "nodemailer": "^3.1.8",
     "nodemailer-stub-transport": "^1.0.0",
     "r2acl": "^1.0.0",
-    "r2base": "^1.0.0",
+    "r2base": "^1.0.7",
     "r2mongoose": "^1.0.0",
     "r2system": "^1.0.0",
     "supertest": "^3.0.0"

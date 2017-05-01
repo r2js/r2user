@@ -71,8 +71,10 @@ describe('r2user', () => {
 
     it('should override default rules', (done) => {
       User.register({ email: 'test3@abc.com', passwd: '1234', uname: 'ab' }, {
-        passwd: 'required|min:6|max:20',
-        uname: 'min:4|max:20',
+        rules: {
+          passwd: 'required|min:6|max:20',
+          uname: 'min:4|max:20',
+        },
       })
         .then(done)
         .catch((err) => {
@@ -81,6 +83,34 @@ describe('r2user', () => {
             expect(err.passwd[0]).to.equal('The passwd must be at least 6 characters.');
             expect(err.uname).to.not.equal(undefined);
             expect(err.uname[0]).to.equal('The uname must be at least 4 characters.');
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+    });
+
+    it('should override default rules, lang, attributes', (done) => {
+      User.register({ email: 'test3@abc.com', passwd: '1234', uname: 'ab' }, {
+        rules: {
+          passwd: 'required|min:6|max:20',
+          uname: 'min:4|max:20',
+        },
+        lang: 'tr',
+        attributes: {
+          tr: {
+            passwd: 'Şifre',
+            uname: 'Kullanıcı adı',
+          },
+        },
+      })
+        .then(done)
+        .catch((err) => {
+          try {
+            expect(err.passwd).to.not.equal(undefined);
+            expect(err.passwd[0]).to.equal('Şifre en az 6 karakter uzunluğunda olmalı.');
+            expect(err.uname).to.not.equal(undefined);
+            expect(err.uname[0]).to.equal('Kullanıcı adı en az 4 karakter uzunluğunda olmalı.');
             done();
           } catch (e) {
             done(e);
@@ -97,6 +127,15 @@ describe('r2user', () => {
         expect(user.salt).to.not.equal(undefined);
         expect(user.isVerified).to.equal('y');
         expect(user.verifyToken).to.equal(undefined);
+      })
+    ));
+
+    it('should register new user as verified, registerVerified', () => (
+      User.registerVerified({ email: 'test100@abc.com', passwd: '1234' }).then((user) => {
+        expect(user).to.not.equal(undefined);
+        expect(user.email).to.equal('test100@abc.com');
+        expect(user.isEnabled).to.equal('y');
+        expect(user.isVerified).to.equal('y');
       })
     ));
   });
@@ -314,62 +353,6 @@ describe('r2user', () => {
         .catch((err) => {
           try {
             expect(err).to.equal('wrong old password!');
-            done();
-          } catch (e) {
-            done(e);
-          }
-        });
-    });
-  });
-
-  describe('verify token', () => {
-    it('should verify access token', (done) => {
-      const obj = { email: 'test16@abc.com', passwd: '1234' };
-      User.register(obj)
-        .then(() => User.login(obj))
-        .then(user => User.verifyToken(user.token))
-        .then((token) => {
-          try {
-            expect(token.user).to.not.equal(undefined);
-            expect(token.expires).to.not.equal(undefined);
-            done();
-          } catch (e) {
-            done(e);
-          }
-        })
-        .catch(done);
-    });
-
-    it('should not verify wrong access token', (done) => {
-      User.verifyToken('12345')
-        .then(done)
-        .catch((err) => {
-          try {
-            expect(err).to.equal('token verification failed!');
-            done();
-          } catch (e) {
-            done(e);
-          }
-        })
-        .catch(done);
-    });
-
-    it('should not verify expired access token', (done) => {
-      const obj = { email: 'test17@abc.com', passwd: '1234' };
-      User.register(obj)
-        .then((user) => {
-          const tokenData = {
-            user: user.id,
-            expires: app.utils.expiresIn(-7),
-          };
-
-          const token = app.utils.getToken(tokenData, '1234').token;
-          return User.verifyToken(token);
-        })
-        .then(done)
-        .catch((err) => {
-          try {
-            expect(err).to.equal('token expired!');
             done();
           } catch (e) {
             done(e);
