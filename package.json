@@ -28,7 +28,7 @@
     "r2acl": "^1.0.0",
     "r2base": "^1.0.7",
     "r2mongoose": "^1.0.0",
-    "r2system": "^1.0.0",
+    "r2system": "^1.0.3",
     "supertest": "^3.0.0"
   },
   "main": "index.js",
