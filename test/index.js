@@ -34,7 +34,7 @@ describe('r2user', () => {
         .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
         .into(systemTest);
 
-      expect(systemTest.service('User')).to.equal(undefined);
+      expect(systemTest.service('User')).to.equal(false);
       done();
     });
   });

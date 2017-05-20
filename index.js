@@ -9,15 +9,14 @@ const libChangePasswd = require('./lib/changePasswd');
 const libAddRole = require('./lib/addRole');
 const libAllowRole = require('./lib/allowRole');
 const libUtils = require('./lib/utils');
-const log = require('debug')('r2:user');
 
 // TODO: mongoose discriminator kullanarak profile modeli geçirilebilir
 module.exports = function User(app, conf = {}) {
-  const System = app.service('System');
-  if (!System) {
-    return log('service [System] not found!');
+  if (!app.hasServices('System')) {
+    return false;
   }
 
+  const System = app.service('System');
   const { Users } = System;
   const verifyUser = libVerify(app);
   const utils = libUtils(app);
