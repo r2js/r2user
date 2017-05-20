@@ -18,20 +18,20 @@ module.exports = function User(app, conf = {}) {
 
   const System = app.service('System');
   const { Users } = System;
-  const verifyUser = libVerify(app);
+  const verify = libVerify(app);
   const utils = libUtils(app);
-  const registerUser = libRegister(app, Users, utils);
-  const registerVerified = _.compose(registerUser, obj => (
+  const register = libRegister(app, Users, utils);
+  const registerVerified = _.compose(register, obj => (
     Object.assign(obj, { isEnabled: true, isVerified: true })
   ));
 
   return {
-    register: registerUser,
+    verify, // send token
+    register,
     registerVerified,
-    verify: verifyUser, // send token
     confirm: libConfirm(app, Users), // confirm token
     login: libLogin(app, Users, conf.jwt, utils),
-    forgotPasswd: libForgotPasswd(app, Users, verifyUser),
+    forgotPasswd: libForgotPasswd(app, Users, verify),
     resetPasswd: libResetPasswd(app, Users, utils),
     changePasswd: libChangePasswd(app, Users, utils),
     addRole: libAddRole(app),
