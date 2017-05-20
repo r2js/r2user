@@ -1,13 +1,14 @@
 const _ = require('underscore');
-const login = require('./lib/login');
-const register = require('./lib/register');
-const verify = require('./lib/verify');
-const confirm = require('./lib/confirm');
-const forgotPasswd = require('./lib/forgotPasswd');
-const resetPasswd = require('./lib/resetPasswd');
-const changePasswd = require('./lib/changePasswd');
-const addRole = require('./lib/addRole');
-const allowRole = require('./lib/allowRole');
+const libLogin = require('./lib/login');
+const libRegister = require('./lib/register');
+const libVerify = require('./lib/verify');
+const libConfirm = require('./lib/confirm');
+const libForgotPasswd = require('./lib/forgotPasswd');
+const libResetPasswd = require('./lib/resetPasswd');
+const libChangePasswd = require('./lib/changePasswd');
+const libAddRole = require('./lib/addRole');
+const libAllowRole = require('./lib/allowRole');
+const libUtils = require('./lib/utils');
 const log = require('debug')('r2:user');
 
 // TODO: mongoose discriminator kullanarak profile modeli geçirilebilir
@@ -18,23 +19,24 @@ module.exports = function User(app, conf = {}) {
   }
 
   const { Users } = System;
-  const verifyUser = verify(app);
-  const registerUser = register(app, Users);
+  const verifyUser = libVerify(app);
+  const utils = libUtils(app);
+  const registerUser = libRegister(app, Users, utils);
   const registerVerified = _.compose(registerUser, obj => (
-    Object.assign(obj, { isEnabled: 'y', isVerified: 'y' })
+    Object.assign(obj, { isEnabled: true, isVerified: true })
   ));
 
   return {
     register: registerUser,
     registerVerified,
     verify: verifyUser, // send token
-    confirm: confirm(app, Users), // confirm token
-    login: login(app, Users, conf.jwt),
-    forgotPasswd: forgotPasswd(app, Users, verifyUser),
-    resetPasswd: resetPasswd(app, Users),
-    changePasswd: changePasswd(app, Users),
-    addRole: addRole(app),
-    allowRole: allowRole(app),
+    confirm: libConfirm(app, Users), // confirm token
+    login: libLogin(app, Users, conf.jwt, utils),
+    forgotPasswd: libForgotPasswd(app, Users, verifyUser),
+    resetPasswd: libResetPasswd(app, Users, utils),
+    changePasswd: libChangePasswd(app, Users, utils),
+    addRole: libAddRole(app),
+    allowRole: libAllowRole(app, utils),
     // updateRoles (remove old roles and set new roles)
   };
 };

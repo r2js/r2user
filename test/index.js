@@ -47,7 +47,7 @@ describe('r2user', () => {
         expect(user.passwd).to.equal(undefined);
         expect(user.hash).to.not.equal(undefined);
         expect(user.salt).to.not.equal(undefined);
-        expect(user.isVerified).to.equal('n');
+        expect(user.isVerified).to.equal(false);
       })
     ));
 
@@ -119,13 +119,13 @@ describe('r2user', () => {
     });
 
     it('should register new user as verified', () => (
-      User.register({ email: 'test4@abc.com', passwd: '1234', isVerified: 'y' }).then((user) => {
+      User.register({ email: 'test4@abc.com', passwd: '1234', isVerified: true }).then((user) => {
         expect(user).to.not.equal(undefined);
         expect(user.email).to.equal('test4@abc.com');
         expect(user.passwd).to.equal(undefined);
         expect(user.hash).to.not.equal(undefined);
         expect(user.salt).to.not.equal(undefined);
-        expect(user.isVerified).to.equal('y');
+        expect(user.isVerified).to.equal(true);
         expect(user.verifyToken).to.equal(undefined);
       })
     ));
@@ -134,8 +134,8 @@ describe('r2user', () => {
       User.registerVerified({ email: 'test100@abc.com', passwd: '1234' }).then((user) => {
         expect(user).to.not.equal(undefined);
         expect(user.email).to.equal('test100@abc.com');
-        expect(user.isEnabled).to.equal('y');
-        expect(user.isVerified).to.equal('y');
+        expect(user.isEnabled).to.equal(true);
+        expect(user.isVerified).to.equal(true);
       })
     ));
   });
@@ -162,8 +162,8 @@ describe('r2user', () => {
         .then(user => User.confirm(user.verifyToken))
         .then((data) => {
           expect(data.verifyToken).to.equal(undefined);
-          expect(data.isEnabled).to.equal('y');
-          expect(data.isVerified).to.equal('y');
+          expect(data.isEnabled).to.equal(true);
+          expect(data.isVerified).to.equal(true);
         })
     ));
 
@@ -385,7 +385,7 @@ describe('r2user', () => {
         .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
         .into(aclTest);
 
-      expect(aclTest.service('User').addRole).to.equal(undefined);
+      expect(aclTest.service('User').addRole).to.equal(false);
       done();
     });
   });
@@ -415,7 +415,7 @@ describe('r2user', () => {
         .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
         .into(aclTest);
 
-      expect(aclTest.service('User').allowRole).to.equal(undefined);
+      expect(aclTest.service('User').allowRole).to.equal(false);
       done();
     });
   });
