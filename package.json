@@ -36,9 +36,14 @@
   "keywords": [
     "r2js",
     "r2user",
+    "r2acl",
+    "r2base",
+    "r2mongoose",
+    "r2system",
     "auth",
     "login",
-    "register"
+    "register",
+    "role"
   ],
   "scripts": {
     "test": "mocha"
