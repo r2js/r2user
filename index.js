@@ -1,6 +1,4 @@
-const _ = require('underscore');
 const libLogin = require('./lib/login');
-const libRegister = require('./lib/register');
 const libVerify = require('./lib/verify');
 const libConfirm = require('./lib/confirm');
 const libForgotPasswd = require('./lib/forgotPasswd');
@@ -10,7 +8,6 @@ const libAddRole = require('./lib/addRole');
 const libAllowRole = require('./lib/allowRole');
 const libUtils = require('./lib/utils');
 
-// TODO: mongoose discriminator kullanarak profile modeli geçirilebilir
 module.exports = function User(app, conf = {}) {
   if (!app.hasServices('System')) {
     return false;
@@ -20,15 +17,9 @@ module.exports = function User(app, conf = {}) {
   const { Users } = System;
   const verify = libVerify(app);
   const utils = libUtils(app);
-  const register = libRegister(app, Users, utils);
-  const registerVerified = _.compose(register, obj => (
-    Object.assign(obj, { isEnabled: true, isVerified: true })
-  ));
 
   return {
     verify, // send token
-    register,
-    registerVerified,
     confirm: libConfirm(app, Users), // confirm token
     login: libLogin(app, Users, conf.jwt, utils),
     forgotPasswd: libForgotPasswd(app, Users, verify),

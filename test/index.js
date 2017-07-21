@@ -39,107 +39,6 @@ describe('r2user', () => {
     });
   });
 
-  describe('register', () => {
-    it('should register new user', () => (
-      User.register({ email: 'test1@abc.com', passwd: '1234' }).then((user) => {
-        expect(user).to.not.equal(undefined);
-        expect(user.email).to.equal('test1@abc.com');
-        expect(user.passwd).to.equal(undefined);
-        expect(user.hash).to.not.equal(undefined);
-        expect(user.salt).to.not.equal(undefined);
-        expect(user.isVerified).to.equal(false);
-      })
-    ));
-
-    it('should fail via invalid params', (done) => {
-      User.register({ email: 'test2', passwd: '1', uname: 'a' })
-        .then(done)
-        .catch((err) => {
-          try {
-            expect(err.email).to.not.equal(undefined);
-            expect(err.email[0]).to.equal('The email format is invalid.');
-            expect(err.passwd).to.not.equal(undefined);
-            expect(err.passwd[0]).to.equal('The passwd must be at least 4 characters.');
-            expect(err.uname).to.not.equal(undefined);
-            expect(err.uname[0]).to.equal('The uname must be at least 2 characters.');
-            done();
-          } catch (e) {
-            done(e);
-          }
-        });
-    });
-
-    it('should override default rules', (done) => {
-      User.register({ email: 'test3@abc.com', passwd: '1234', uname: 'ab' }, {
-        rules: {
-          passwd: 'required|min:6|max:20',
-          uname: 'min:4|max:20',
-        },
-      })
-        .then(done)
-        .catch((err) => {
-          try {
-            expect(err.passwd).to.not.equal(undefined);
-            expect(err.passwd[0]).to.equal('The passwd must be at least 6 characters.');
-            expect(err.uname).to.not.equal(undefined);
-            expect(err.uname[0]).to.equal('The uname must be at least 4 characters.');
-            done();
-          } catch (e) {
-            done(e);
-          }
-        });
-    });
-
-    it('should override default rules, lang, attributes', (done) => {
-      User.register({ email: 'test3@abc.com', passwd: '1234', uname: 'ab' }, {
-        rules: {
-          passwd: 'required|min:6|max:20',
-          uname: 'min:4|max:20',
-        },
-        lang: 'tr',
-        attributes: {
-          tr: {
-            passwd: 'Şifre',
-            uname: 'Kullanıcı adı',
-          },
-        },
-      })
-        .then(done)
-        .catch((err) => {
-          try {
-            expect(err.passwd).to.not.equal(undefined);
-            expect(err.passwd[0]).to.equal('Şifre en az 6 karakter uzunluğunda olmalı.');
-            expect(err.uname).to.not.equal(undefined);
-            expect(err.uname[0]).to.equal('Kullanıcı adı en az 4 karakter uzunluğunda olmalı.');
-            done();
-          } catch (e) {
-            done(e);
-          }
-        });
-    });
-
-    it('should register new user as verified', () => (
-      User.register({ email: 'test4@abc.com', passwd: '1234', isVerified: true }).then((user) => {
-        expect(user).to.not.equal(undefined);
-        expect(user.email).to.equal('test4@abc.com');
-        expect(user.passwd).to.equal(undefined);
-        expect(user.hash).to.not.equal(undefined);
-        expect(user.salt).to.not.equal(undefined);
-        expect(user.isVerified).to.equal(true);
-        expect(user.verifyToken).to.equal(undefined);
-      })
-    ));
-
-    it('should register new user as verified, registerVerified', () => (
-      User.registerVerified({ email: 'test100@abc.com', passwd: '1234' }).then((user) => {
-        expect(user).to.not.equal(undefined);
-        expect(user.email).to.equal('test100@abc.com');
-        expect(user.isEnabled).to.equal(true);
-        expect(user.isVerified).to.equal(true);
-      })
-    ));
-  });
-
   describe('verify', () => {
     it('should send verify token', () => (
       User.verify({ email: 'test5@abc.com' }, 'verify.ejs', {
@@ -157,8 +56,8 @@ describe('r2user', () => {
 
   describe('confirm', () => {
     it('should confirm verify token', () => (
-      User
-        .register({ email: 'test6@abc.com', passwd: '1234' })
+      Users
+        .create({ email: 'test6@abc.com', passwd: '1234' })
         .then(user => User.confirm(user.verifyToken))
         .then((data) => {
           expect(data.verifyToken).to.equal(undefined);
@@ -179,8 +78,8 @@ describe('r2user', () => {
 
   describe('login', () => {
     it('should login user', (done) => {
-      const obj = { email: 'test7@abc.com', passwd: '1234' };
-      User.register(obj)
+      const obj = { email: 'test7@abc.com', passwd: '1234', isVerified: true, isEnabled: true };
+      Users.create(obj)
         .then(() => User.login(obj))
         .then((user) => {
           try {
@@ -226,8 +125,8 @@ describe('r2user', () => {
 
   describe('forgot password', () => {
     it('should send reset token', () => (
-      User
-        .register({ email: 'test8@abc.com', passwd: '1234' })
+      Users
+        .create({ email: 'test8@abc.com', passwd: '1234', isVerified: true, isEnabled: true })
         .then(() => User.forgotPasswd('test8@abc.com', 'verify.ejs', {
           from: 'mailer@abc.com',
           subject: 'verification mail',
@@ -257,8 +156,8 @@ describe('r2user', () => {
 
   const registerAndReset = (userData) => {
     const { email } = userData;
-    return User
-      .register(userData)
+    return Users
+      .create(userData)
       .then(() => User.forgotPasswd(email, 'verify.ejs', {
         from: 'mailer@abc.com',
         subject: 'verification mail',
@@ -272,12 +171,12 @@ describe('r2user', () => {
 
   describe('reset password', () => {
     it('should reset password', (done) => {
-      registerAndReset({ email: 'test9@abc.com', passwd: '1234', isEnabled: 'y', isVerified: 'y' })
+      registerAndReset({ email: 'test9@abc.com', passwd: '1234', isEnabled: true, isVerified: true })
         .then((user) => {
           try {
             expect(user.resetToken).to.equal(undefined);
             expect(user.resetExpires).to.equal(undefined);
-            expect(user.passwd).to.equal(undefined);
+            expect(user.passwd).to.not.equal('1234');
             done();
           } catch (e) {
             done(e);
@@ -296,7 +195,7 @@ describe('r2user', () => {
         .then()
         .catch((err) => {
           try {
-            expect(err).to.equal('user is not enabled!');
+            expect(err).to.equal('user not found!');
             done();
           } catch (e) {
             done(e);
@@ -307,34 +206,39 @@ describe('r2user', () => {
 
   describe('change password', () => {
     it('should change password', () => (
-      User
-        .register({ email: 'test12@abc.com', passwd: '1234' })
-        .then(() => User.changePasswd(
-          { email: 'test12@abc.com' },
+      Users
+        .create({ email: 'test12@abc.com', passwd: '1234' })
+        .then(user => User.changePasswd(user.id,
+          { newPasswd: '12345', passwdRepeat: '12345' } // eslint-disable-line
+        ))
+    ));
+
+    it('should change password, check old password', () => (
+      Users
+        .create({ email: 'test12a@abc.com', passwd: '1234' })
+        .then(user => User.changePasswd(user.id,
           { newPasswd: '12345', passwdRepeat: '12345', oldPasswd: '1234' } // eslint-disable-line
         ))
     ));
 
     it('should change password and login via new password', () => (
-      User
-        .register({ email: 'test13@abc.com', passwd: '1234' })
-        .then(() => User.changePasswd(
-          { email: 'test13@abc.com' },
+      Users
+        .create({ email: 'test13@abc.com', passwd: '1234', isVerified: true, isEnabled: true })
+        .then(user => User.changePasswd(user.id,
           { newPasswd: '12345', passwdRepeat: '12345', oldPasswd: '1234' } // eslint-disable-line
         ))
         .then(() => User.login({ email: 'test13@abc.com', passwd: '12345' }))
     ));
 
     it('should not change password via invalid params', (done) => {
-      User
-        .register({ email: 'test14@abc.com', passwd: '1234' })
+      Users
+        .create({ email: 'test14@abc.com', passwd: '1234' })
         .then(() => User.changePasswd({ email: 'test14@abc.com' }))
         .then(done)
         .catch((err) => {
           try {
             expect(err.newPasswd[0]).to.equal('The newPasswd field is required.');
             expect(err.passwdRepeat[0]).to.equal('The passwdRepeat field is required.');
-            expect(err.oldPasswd[0]).to.equal('The oldPasswd field is required.');
             done();
           } catch (e) {
             done(e);
@@ -343,10 +247,9 @@ describe('r2user', () => {
     });
 
     it('should not change password via wrong old password', (done) => {
-      User
-        .register({ email: 'test15@abc.com', passwd: '1234' })
-        .then(() => User.changePasswd(
-          { email: 'test15@abc.com' },
+      Users
+        .create({ email: 'test15@abc.com', passwd: '1234' })
+        .then(user => User.changePasswd(user.id,
           { newPasswd: '12345', passwdRepeat: '12345', oldPasswd: '123456' } // eslint-disable-line
         ))
         .then(done)
@@ -365,7 +268,7 @@ describe('r2user', () => {
     it('should add admin role to the user', (done) => {
       const obj = { email: 'test18@abc.com', passwd: '1234' };
       let userData;
-      User.register(obj)
+      Users.create(obj)
         .then((user) => {
           userData = user;
           return User.addRole(user, 'admin');
@@ -394,7 +297,7 @@ describe('r2user', () => {
     it('should allow admin to get posts', (done) => {
       const obj = { email: 'test19@abc.com', passwd: '1234' };
       let userData;
-      User.register(obj)
+      Users.create(obj)
         .then((user) => {
           userData = user;
           return User.addRole(user, 'admin');
