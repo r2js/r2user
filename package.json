@@ -1,7 +1,7 @@
 {
   "name": "r2user",
   "description": "User service for r2js",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "author": "Selçuk Fatih Sevinç",
   "license": "MIT",
   "engines": {

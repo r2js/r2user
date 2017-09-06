@@ -8,7 +8,7 @@ const libAddRole = require('./lib/addRole');
 const libAllowRole = require('./lib/allowRole');
 const libUtils = require('./lib/utils');
 
-module.exports = function User(app, conf = {}) {
+module.exports = function User(app, conf) {
   if (!app.hasServices('System')) {
     return false;
   }
@@ -21,7 +21,7 @@ module.exports = function User(app, conf = {}) {
   return {
     verify, // send token
     confirm: libConfirm(app, Users), // confirm token
-    login: libLogin(app, Users, conf.jwt, utils),
+    login: libLogin(app, Users, conf, utils),
     forgotPasswd: libForgotPasswd(app, Users, verify),
     resetPasswd: libResetPasswd(app, Users, utils),
     changePasswd: libChangePasswd(app, Users, utils),

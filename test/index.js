@@ -17,7 +17,7 @@ app.start()
   .serve(r2system)
   .serve(r2acl)
   .serve(mailer, 'Mailer')
-  .serve(r2user, { jwt: { secret: '1234', expiresIn: 7 } })
+  .serve(r2user)
   .into(app);
 
 app.set('view engine', 'ejs');
@@ -107,6 +107,19 @@ describe('r2user', () => {
         });
     });
 
+    it('should not login invalid password', (done) => {
+      User.login({ email: 'test7@abc.com', passwd: '12345' })
+        .then()
+        .catch((err) => {
+          try {
+            expect(err).to.equal('wrong password!');
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+    });
+
     it('should not login via invalid params', (done) => {
       User.login({})
         .then()
@@ -120,6 +133,23 @@ describe('r2user', () => {
             done(e);
           }
         });
+    });
+
+    it('should login user via username', (done) => {
+      const obj = { email: 'r2user@abc.com', uname: 'r2user', passwd: '1234', isVerified: true, isEnabled: true };
+      Users.create(obj)
+        .then(() => User.login({ uname: 'r2user', passwd: '1234' }))
+        .then((user) => {
+          try {
+            expect(user.token).to.not.equal(undefined);
+            expect(user.expires).to.not.equal(undefined);
+            expect(user.userId).to.not.equal(undefined);
+            done();
+          } catch (e) {
+            done(e);
+          }
+        })
+        .catch(done);
     });
   });
 
@@ -202,6 +232,32 @@ describe('r2user', () => {
           }
         });
     });
+
+    it('should not reset password via invalid passwd parameter', (done) => {
+      User.resetPasswd(null, '12')
+        .then()
+        .catch((err) => {
+          try {
+            expect(err).to.deep.equal({ passwd: ['The passwd must be at least 4 characters.'] });
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+    });
+
+    it('should not reset password via invalid token parameter', (done) => {
+      User.resetPasswd('invalidToken', '1234')
+        .then()
+        .catch((err) => {
+          try {
+            expect(err).to.equal('token not found!');
+            done();
+          } catch (e) {
+            done(e);
+          }
+        });
+    });
   });
 
   describe('change password', () => {
@@ -262,6 +318,15 @@ describe('r2user', () => {
           }
         });
     });
+
+    it('should not change password via invalid user', (done) => {
+      User.changePasswd(null, {
+        newPasswd: '12345', passwdRepeat: '12345', oldPasswd: '123456',
+      }).catch((err) => {
+        expect(err).to.equal('user not found!');
+        done();
+      });
+    });
   });
 
   describe('add role', () => {
@@ -290,6 +355,13 @@ describe('r2user', () => {
 
       expect(aclTest.service('User').addRole).to.equal(false);
       done();
+    });
+
+    it('should not add role via invalid user', (done) => {
+      User.addRole({}).catch((err) => {
+        expect(err).to.equal('user not found!');
+        done();
+      });
     });
   });
 
@@ -320,6 +392,13 @@ describe('r2user', () => {
 
       expect(aclTest.service('User').allowRole).to.equal(false);
       done();
+    });
+
+    it('should not allow role via invalid permissions', (done) => {
+      User.allowRole('admin', 'posts', ['notFound']).catch((err) => {
+        expect(err).to.deep.equal({ permissions: ['The selected permissions is invalid.'] });
+        done();
+      });
     });
   });
 });

@@ -1,3 +1,6 @@
 module.exports = {
-  users: {},
+  jwt: {
+    secret: '1234',
+    expiresIn: 7,
+  },
 };
